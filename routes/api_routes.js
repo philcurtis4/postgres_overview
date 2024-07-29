@@ -1,31 +1,47 @@
 const router = require('express').Router();
-const client = require('../db/connection');
+const Query = require('../lib/Query');
 
 //GET route to send all students
 // localhost:3333/api/students
 router.get('/students', async (req, res) => {
-	const sql = `
-		SELECT
-			s.id AS student_id,
-			CONCAT(s.first_name, ' ', s.last_name) AS full_name,
-			c.id AS course_id,
-			course_name,
-			course_type,
-			g.id AS group_id,
-			group_name,
-			gleaders.first_name AS group_leader
-			FROM students AS s
-				JOIN courses AS c
-					ON s.course_id = c.id
-				LEFT JOIN groups as g
-					on s.group_id = g.id
-				LEFT JOIN students AS gleaders
-					ON s.group_leader_id = gleaders.id
-			ORDER BY student_id;
-		`;
-		const data = await client.query(sql);
+		const students = await Query.getStudents();
 
-		res.json(data.rows);
+		res.json(students);
 });
+
+//GET route to send all courses
+// localhost:3333/api/courses
+router.get('/courses', async (req, res) => {
+	const courses = await Query.getCourses();
+
+	res.json(courses);
+});
+
+//Create routes
+
+// POST Create a course
+//post request to localhost:3333/api/courses
+router.post('/courses', async (req, res) => {
+	const formData = req.body;
+
+	await Query.addCourse(formData);
+
+	res.json({
+		messsge: 'Course created successfully!'
+	});
+});
+
+//POST Create a student
+//post request to localhost:3333/api/students
+router.post('/students', async (req, res) => {
+	const formData = req.body;
+
+	await Query.addStudent(formData);
+
+	res.json({
+		messsge: 'Student added successfully!'
+	});
+});
+
 
 module.exports = router;
